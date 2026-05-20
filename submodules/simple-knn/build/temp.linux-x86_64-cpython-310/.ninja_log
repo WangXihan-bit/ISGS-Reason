@@ -1,0 +1,10 @@
+# ninja log v5
+0	21333	1744803002368762951	/home/wangxihan/OccamLGS/submodules/simple-knn/build/temp.linux-x86_64-cpython-310/ext.o	27bfb94c4c597a40
+0	21882	1744803002924762915	/home/wangxihan/OccamLGS/submodules/simple-knn/build/temp.linux-x86_64-cpython-310/simple_knn.o	6f5ee1591eedab7b
+1	102763	1744803083759775414	/home/wangxihan/OccamLGS/submodules/simple-knn/build/temp.linux-x86_64-cpython-310/spatial.o	c630b4ab6e9d387f
+6	13858	1745038021758299095	/home/wangxihan/GaussianGraph/submodules/simple-knn/build/temp.linux-x86_64-cpython-310/simple_knn.o	5391206213080c07
+6	19259	1745038027157265951	/home/wangxihan/GaussianGraph/submodules/simple-knn/build/temp.linux-x86_64-cpython-310/ext.o	a52269dbb006e9b7
+6	59871	1745038067726026258	/home/wangxihan/GaussianGraph/submodules/simple-knn/build/temp.linux-x86_64-cpython-310/spatial.o	2ddb4829c9d33814
+13	22393	1762174260662938221	/home/wangxihan/GaussianGraph_u/submodules/simple-knn/build/temp.linux-x86_64-cpython-310/ext.o	5d2f218c69b720c3
+14	26528	1762174264786940630	/home/wangxihan/GaussianGraph_u/submodules/simple-knn/build/temp.linux-x86_64-cpython-310/simple_knn.o	2be345421c2c60f2
+14	75924	1762174314160973115	/home/wangxihan/GaussianGraph_u/submodules/simple-knn/build/temp.linux-x86_64-cpython-310/spatial.o	e7e43020d2ef8d2e
