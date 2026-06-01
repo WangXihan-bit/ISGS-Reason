@@ -41,9 +41,10 @@ def render_view(
     FovX,
     FovY,
     save_dir=None,
-    image_size=[480, 640],
+    image_size=[640, 480],
     bbox_id=0,
     view_tags=None,
+    global_uid=0,
 ):
     """
     Generate camera infos from both scene-center view and sphere-sampled views.
@@ -53,7 +54,7 @@ def render_view(
         anchor_bboxes: Tensor, [N, ...], target anchor bboxes.
         FovX, FovY: camera FoV.
         save_dir: directory to save rendered images.
-        image_size: [H, W].
+        image_size: [W, H].
         bbox_id: current bbox index, used for filename.
         view_tags: list of view names, e.g., ["scene", "sphere_0", ...].
 
@@ -67,69 +68,64 @@ def render_view(
 
     os.makedirs(save_dir, exist_ok=True)
 
+    # 保证 centers 是 [K, 3]
     if centers.dim() == 1:
         centers = centers.unsqueeze(0)
 
     if view_tags is None:
         view_tags = [f"view_{i}" for i in range(centers.shape[0])]
 
-    assert len(view_tags) == centers.shape[0], \
-        f"view_tags length {len(view_tags)} != centers number {centers.shape[0]}"
+    anchor_bbox_3d = anchor_bboxes
 
-    global_uid = 0
+    R, T, cx, cy = setup_camera(
+        anchor_bbox_3d=anchor_bbox_3d.unsqueeze(0),
+        center=centers,
+        camera_distance_factor=0,
+        camera_lift=0,
+    )
 
-    for i in range(len(anchor_bboxes)):
-        anchor_bbox_3d = anchor_bboxes[i]
+    # 如果只生成一个视角，统一转成 batch 形式，方便后续处理
+    if R.dim() == 2:
+        R = R.unsqueeze(0)
+        T = T.unsqueeze(0)
 
-        R, T, cx, cy = setup_camera(
-            anchor_bbox_3d=anchor_bbox_3d.unsqueeze(0),
-            center=centers,
-            camera_distance_factor=0,
-            camera_lift=0,
-        )
+    for j in range(R.shape[0]):
+        R_v = R[j]
+        T_v = T[j]
 
-        if R.dim() == 2:
-            R = R.unsqueeze(0)
-            T = T.unsqueeze(0)
+        mat = torch.eye(4, dtype=R_v.dtype, device=R_v.device)
+        mat[:3, :3] = R_v
+        mat[:3, 3] = T_v
 
-        for j in range(R.shape[0]):
-            R_v = R[j]
-            T_v = T[j]
+        c2w.append(mat)
 
-            mat = torch.eye(4, dtype=R_v.dtype, device=R_v.device)
-            mat[:3, :3] = R_v
-            mat[:3, 3] = T_v
+        w2c = np.linalg.inv(mat.detach().cpu().numpy())
 
-            c2w.append(mat)
+        # R is stored transposed due to 'glm' in CUDA code
+        R_cam = np.transpose(w2c[:3, :3])
+        T_cam = w2c[:3, 3]
 
-            w2c = np.linalg.inv(mat.detach().cpu().numpy())
+        view_name = view_tags[j]
 
-            R_cam = np.transpose(w2c[:3, :3])
-            T_cam = w2c[:3, 3]
+        image_name = f"render_bbox{bbox_id}_{view_name}.jpg"
+        image_path = os.path.join(save_dir, image_name)
 
-            view_name = view_tags[j]
-
-            image_name = f"render_bbox{bbox_id}_{view_name}.jpg"
-            image_path = os.path.join(save_dir, image_name)
-
-            cam_infos.append(
-                CameraInfo(
-                    uid=global_uid,
-                    R=R_cam,
-                    T=T_cam,
-                    FovY=FovY,
-                    FovX=FovX,
-                    cx=cx,
-                    cy=cy,
-                    image_path=image_path,
-                    image_name=image_name,
-                    width=image_size[1],
-                    height=image_size[0],
-                    is_test=True,
-                )
+        cam_infos.append(
+            CameraInfo(
+                uid=global_uid + j,
+                R=R_cam,
+                T=T_cam,
+                FovY=FovY,
+                FovX=FovX,
+                cx=cx,
+                cy=cy,
+                image_path=image_path,
+                image_name=image_name,
+                width=image_size[0],
+                height=image_size[1],
+                is_test=True,
             )
-
-            global_uid += 1
+        )
 
     return cam_infos, c2w
 
@@ -146,7 +142,7 @@ def render_set(model_path, name, views, gaussians, pipeline, background, train_t
     for idx, view in enumerate(tqdm(views, desc="Rendering progress")):
         rendering = render(view, gaussians, pipeline, background, use_trained_exp=train_test_exp, separate_sh=separate_sh)["render"]
     
-        torchvision.utils.save_image(torch.flip(rendering, dims=[-1]), os.path.join(render_path, '{0:05d}'.format(idx) + ".png"))
+        torchvision.utils.save_image(rendering, os.path.join(render_path, '{0:05d}'.format(idx) + ".png"))
 
 def focal2fov(focal, pixels):
     return 2*math.atan(pixels/(2*focal))
@@ -187,7 +183,7 @@ def setup_camera(
         up=((0, 0, -1),),
     )
 
-    principal_point = torch.tensor([646.295044, 489.927032]).to(
+    principal_point = torch.tensor([320, 240]).to(
         center.device
     )  # Initial principal point, shape (1, 2)
 

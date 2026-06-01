@@ -89,9 +89,9 @@ def look_at_rotation(
     view_dir = F.normalize(at - camera_position, eps=1e-5)
     z_axis = view_dir / (view_dir.norm() + 1e-6)
     
-    x_axis = torch.cross(z_axis, up, dim=1)
+    x_axis = torch.cross(up, z_axis, dim=1)
     x_axis = x_axis / (x_axis.norm() + 1e-6)
-    y_axis = torch.cross(x_axis, z_axis, dim=1)
+    y_axis = torch.cross(z_axis, x_axis, dim=1)
     y_axis = y_axis / (y_axis.norm() + 1e-6)
 
     is_close = torch.isclose(x_axis, torch.tensor(0.0, device=z_axis.device), atol=5e-3).all(dim=1, keepdim=True)

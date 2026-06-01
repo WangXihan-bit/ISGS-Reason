@@ -28,12 +28,15 @@ from sam3.model_builder import build_sam3_image_model
 from sam3.model.sam3_image_processor import Sam3Processor
 
 def process_target_gs_ratio(gaussians, texts, ratio_thresh=0.7):
+    """Find candidate instance ids by matching text embeddings to Gaussian language features."""
 
     clip_model = OpenCLIPNetwork(args, OpenCLIPNetworkConfig)
 
     texts_embed = clip_model.encode_texts(texts)  # [N_texts, D]
     similarity = gaussians._language_feature.float() @ texts_embed.float().T  # [N_gaussians, N_texts]
     
+    # Normalize each text column independently so one threshold can be shared
+    # across query words with different raw similarity ranges.
     sim_dist = similarity - similarity.min(dim=0, keepdim=True)[0]
     sim_dist = sim_dist / (sim_dist.max(dim=0, keepdim=True)[0] + 1e-6) 
 
@@ -45,6 +48,8 @@ def process_target_gs_ratio(gaussians, texts, ratio_thresh=0.7):
 
         gs_valid_idx = torch.tensor([], dtype=torch.long, device=gaussians._xyz.device)
         
+        # Convert point-level matches into instance-level candidates and remove
+        # very small clusters that are unlikely to be stable objects.
         match_mask = sim_dist[:, t_idx] > ratio_thresh
         gaussian_idx = match_mask.nonzero(as_tuple=True)[0]
         instance_ids, counts = torch.unique(gaussians._cluster_indices[gaussian_idx], return_counts=True)
@@ -66,6 +71,7 @@ def process_target_gs_ratio(gaussians, texts, ratio_thresh=0.7):
     return results, all_gs_valid_idx
     
 def distance_matrix_center(gaussians, sub_idx, obj_idx):
+    """Compute pairwise distances between subject and object instance centers."""
 
     sub_centers = torch.stack([gaussians._xyz[gaussians._cluster_indices == idx].mean(dim=0) for idx in sub_idx])  # [Ns, 3]
 
@@ -94,6 +100,7 @@ def align_ptc_to_camera(point_cloud, align_matrix):
 def generate_bbox_refine(
     gaussians, region_dict, sigma=2.0, visualize=True
 ):
+    """Build per-instance 3D AABBs after filtering radial outliers."""
     
     xyz = gaussians._xyz
     cluster_idx = gaussians._cluster_indices
@@ -118,6 +125,8 @@ def generate_bbox_refine(
         if xyz_target.numel() == 0:
             continue
 
+        # Estimate one robust center per instance, then keep points within
+        # mean + sigma * std before computing the final AABB.
         centroid_sum = torch_scatter.scatter_add(xyz_target, cluster_target, dim=0)
         counts = torch_scatter.scatter_add(
             torch.ones_like(cluster_target, dtype=torch.float32), cluster_target, dim=0
@@ -170,6 +179,7 @@ def generate_bbox_refine(
     return bbox_dict
 
 def bbox_iou_3d_batch(boxes1, boxes2):
+    """Compute pairwise 3D IoU for axis-aligned boxes."""
    
     min1, max1 = boxes1[:, None, :3], boxes1[:, None, 3:]  # [N,1,3]
     min2, max2 = boxes2[None, :, :3], boxes2[None, :, 3:]  # [1,N,3]
@@ -187,6 +197,7 @@ def bbox_iou_3d_batch(boxes1, boxes2):
     return iou
 
 def merge_bboxes_iou(bboxes, sub_id_sets, iou_thresh=0.3):
+    """Merge overlapping boxes while preserving the subject id sets."""
     
     N = bboxes.shape[0]
     visited = torch.zeros(N, dtype=torch.bool, device=bboxes.device)
@@ -217,9 +228,10 @@ def merge_bboxes_iou(bboxes, sub_id_sets, iou_thresh=0.3):
     return merged_bboxes, merged_sub_id_sets
 
 def build_region_items(sub_bbox_dict, obj_bbox_dict):
+    """Flatten subject and object bbox dictionaries for relation-region merging."""
     region_items = []
 
-    # sub
+    # Subject candidates.
     for k, v in sub_bbox_dict.items():
         if k.endswith("_id"):
             continue
@@ -230,7 +242,7 @@ def build_region_items(sub_bbox_dict, obj_bbox_dict):
             "is_sub": True
         })
 
-    # obj
+    # Object/reference candidates.
     for k, v in obj_bbox_dict.items():
         if k.endswith("_id"):
             continue
@@ -245,6 +257,7 @@ def build_region_items(sub_bbox_dict, obj_bbox_dict):
     return region_items
 
 def init_sub_id_sets(root_item):
+    """Initialize the subject-instance set attached to each merged candidate."""
     root_bboxes = root_item["bbox"]
     root_ids = root_item["id"]
 
@@ -254,6 +267,7 @@ def init_sub_id_sets(root_item):
         return [set() for _ in range(root_bboxes.shape[0])]
 
 def root2leaf(gaussians, sub_bbox_dict, obj_bbox_dict, top_k=3):
+    """Merge subject and reference-object regions into compact query candidates."""
 
     region_items = build_region_items(sub_bbox_dict, obj_bbox_dict)
 
@@ -269,6 +283,7 @@ def root2leaf(gaussians, sub_bbox_dict, obj_bbox_dict, top_k=3):
         center_leaf = (leaf_bboxes[:, :3] + leaf_bboxes[:, 3:]) / 2
         center_merged = (merged_bboxes[:, :3] + merged_bboxes[:, 3:]) / 2
 
+        # Attach each new leaf region to the nearest existing merged region.
         dist_mat = torch.cdist(center_merged, center_leaf, p=2)
         closest_idx = torch.argmin(dist_mat, dim=0)
 
@@ -301,7 +316,8 @@ def root2leaf(gaussians, sub_bbox_dict, obj_bbox_dict, top_k=3):
     valid_mask = volumes < vol_thresh
     valid_idx = torch.nonzero(valid_mask, as_tuple=False).squeeze(1)
 
-    # 再排序，选前 top_k
+    # Prefer compact candidates; large boxes usually indicate ambiguous or
+    # scene-level matches rather than a localized target.
     sorted_idx = torch.argsort(volumes[valid_idx])
     topk_idx = valid_idx[sorted_idx[:top_k]]
     topk_bboxes = merged_bboxes[topk_idx]
@@ -310,6 +326,7 @@ def root2leaf(gaussians, sub_bbox_dict, obj_bbox_dict, top_k=3):
     return topk_bboxes, topk_sub_ids
 
 def visualize_masks_with_ids(image_pil, seg_masks, contain_tol=0):
+    """Render numbered mask boxes for VLM-based mask disambiguation."""
     
     image = np.array(image_pil).copy()
     N = len(seg_masks)
@@ -340,6 +357,7 @@ def visualize_masks_with_ids(image_pil, seg_masks, contain_tol=0):
             "area": area
         })
 
+    # Remove masks fully contained in larger masks to reduce duplicate choices.
     remove_ids = set()
     for i in range(N):
         if bboxes[i] is None:
@@ -399,12 +417,15 @@ def visualize_masks_with_ids(image_pil, seg_masks, contain_tol=0):
     return Image.fromarray(overlay), kept_indices, id_map
 
 def merge_bbox(prompt):
+    """Parse a query and produce merged 3D candidate boxes."""
 
     for i, p in enumerate([prompt]):
         print(f"\nPrompt {i}: {p}")
         relations = parse_relations(args, p)
         print("Parsed relations:", relations)
 
+        # Subjects define the final target category; objects act as reference
+        # anchors for relation reasoning.
         texts_sub = [rel['subject'] for rel in relations["triples"]]
         uni_sub = [t for t in set(texts_sub) if t.strip() != '']
         assert len(uni_sub) != 0
@@ -428,16 +449,21 @@ def merge_bbox(prompt):
     return merged_bbox, relations, merged_sub_ids, uni_sub
 
 def generate_views(merged_bbox):
-    anchor_center = (merged_bbox[:, :3] + merged_bbox[:, 3:]) / 2
+    """Generate novel query views around merged candidate boxes."""
 
-    image_size = [968, 1296]
-    focal_length = torch.tensor([1169.621094, 1167.105103]).to(args.device) 
+    image_size = [640, 480]
+    focal_length = torch.tensor([1169.621094 * 640 / 1296, 1167.105103 * 480 / 968]).to(args.device)
     
     FovY = focal2fov(focal_length[1], image_size[1])
     FovX = focal2fov(focal_length[0], image_size[0])
 
+    cam_all = []
+    c2w_all = []
+    global_uid = 0
+
     for i, bbox in enumerate(merged_bbox):
         print(f"Generating view for bbox {i}")
+        # Use quarter-sphere samples plus a scene-center view for VLM scoring.
         cam_pose = quarter_sphere_equal(gaussians._xyz, bbox)
         scene_center = gaussians._xyz.mean(dim=0)
 
@@ -450,23 +476,29 @@ def generate_views(merged_bbox):
         )
      
         view_tags = ["scene"] + [f"sphere_{j}" for j in range(cam_pose.shape[0])]
+        anchor_center = (bbox[:3] + bbox[3:]) / 2
 
         cam_infos, c2w = render_view(
             centers=view_centers,
             anchor_bboxes=anchor_center,
             FovX=FovX,
             FovY=FovY,
-            save_dir=args.save_dir,
+            save_dir=args.model_path,
             image_size=image_size,
             bbox_id=i,
             view_tags=view_tags,
+            global_uid=global_uid
         )
-     
-    views = cameraList_from_camInfos(cam_infos, 1.0, args, True)
+        cam_all.extend(cam_infos)
+        c2w_all.extend(c2w)
+        global_uid += len(cam_infos)
+
+    views = cameraList_from_camInfos(cam_all, 1.0, args, True)
 
     return views
 
 def refine_target(relations, merged_bbox, gaussians, sub_ids, uni_sub, views, ini_thresh=0.5):
+    """Select the best rendered view, segment it, and lift the selected mask back to 3D."""
     
     best_score, best_image_id = query_images(relations["triples"], os.path.join(args.model_path, 'query_view_renders'))
     
@@ -491,7 +523,9 @@ def refine_target(relations, merged_bbox, gaussians, sub_ids, uni_sub, views, in
             print(target_mask.sum())
             xyz_np = gaussians._xyz.detach().cpu().numpy()
             mask_xyz = xyz_np[target_mask.detach().cpu().numpy()]  # (N,3)
-            # 计算 3D AABB
+       
+            # Fallback: if the candidate is unambiguous but no view is scored,
+            # use the subject instance ids directly.
             bbox_min = mask_xyz.min(axis=0)
             bbox_max = mask_xyz.max(axis=0)
           
@@ -512,6 +546,7 @@ def refine_target(relations, merged_bbox, gaussians, sub_ids, uni_sub, views, in
         prompt = uni_sub[0]
         thresh = ini_thresh
 
+        # Relax the SAM3 text-prompt threshold until at least one mask is found.
         while True:
             processor = Sam3Processor(sam3_model, confidence_threshold=thresh)
             inference_state = processor.set_image(target_image)
@@ -538,6 +573,7 @@ def refine_target(relations, merged_bbox, gaussians, sub_ids, uni_sub, views, in
 
         else:
             print("2-2")
+            # For multiple masks, ask the VLM to choose among numbered regions.
             seg_masks = masks.squeeze(1).cpu().numpy()  # [N, H, W]
             result_img, kept_indices, id_map = visualize_masks_with_ids(target_image, seg_masks)
 
@@ -573,7 +609,7 @@ def refine_target(relations, merged_bbox, gaussians, sub_ids, uni_sub, views, in
         )
 
         H, W = mask_2d.shape[:2]
-        obj_mask = torch.flip(mask_2d.to(args.device).bool(), dims=[1])  
+        obj_mask = mask_2d.to(args.device).bool()
 
         visible_idx = (activated[0] > 0).nonzero(as_tuple=True)[0]
         
@@ -583,6 +619,8 @@ def refine_target(relations, merged_bbox, gaussians, sub_ids, uni_sub, views, in
         batch_y = torch.clamp(xy[:, 1], min=0, max=H - 1)
         batch_x = torch.clamp(xy[:, 0], min=0, max=W - 1)
         gt_depth = rendered_depth[batch_y.long(), batch_x.long()].float() 
+        # Keep projected Gaussians whose center depth agrees with the rendered
+        # expected depth at the same pixel.
         valid_gs_depth = torch.isclose(gt_depth, proj_depths, rtol=0.03)
 
         valid_mask = (xy[:, 0] >= 0) & (xy[:, 0] < W) & (xy[:, 1] >= 0) & (xy[:, 1] < H) & valid_gs_depth
@@ -651,11 +689,10 @@ if __name__ == '__main__':
         (model_params, _) = torch.load(checkpoint, weights_only=False)
         gaussians_raw.restore_rgb(model_params, opt.extract(args))
   
-    render_set(args.save_dir, "query_view_renders", views, gaussians_raw, pipeline, background, model.extract(args).train_test_exp, args.separate_sh)
-    save_path = os.path.join(args.save_dir, 'refined_target.ply')
+    render_set(args.model_path, "query_view_renders", views, gaussians_raw, pipeline, background, model.extract(args).train_test_exp, args.separate_sh)
+    save_path = os.path.join(args.model_path, 'refined_target.ply')
     bbox_min, bbox_max = refine_target(relations, merged_bbox, gaussians, sub_idx, uni_sub, views)
 
         
 
            
-
