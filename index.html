@@ -135,7 +135,6 @@
   </div>
 </section>
 <!-- End paper abstract -->
-
 <!-- Image gallery section -->
 <section class="hero is-small">
   <div class="hero-body">
@@ -178,20 +177,41 @@
         </div>
       </div>
 
-      <!-- Qualitative results grid -->
-      <div style="
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 35px;
-        margin-bottom: 40px;
-      ">
+      <!-- Segmentation result -->
+      <div style="display: flex; justify-content: center; margin-bottom: 55px;">
+        <div style="max-width: 85%; text-align: left;">
 
-        <!-- LERF result -->
-        <div style="text-align: left;">
           <div style="
             border: 1px solid #d9d9d9;
             border-radius: 10px;
-            padding: 10px;
+            padding: 12px;
+            background-color: #f7f7f7;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          ">
+            <img
+              src="static/images/seg_01.jpg"
+              alt="3D semantic segmentation results"
+              style="width: 100%; height: auto; display: block; border-radius: 6px;"
+            />
+          </div>
+
+          <p style="margin-top: 15px; font-size: 1.05rem; line-height: 1.55; text-align: justify;">
+            Qualitative 3D semantic segmentation results. ISGS-Reason refines noisy point-level
+            semantic features through instance-aware reliability modeling and correlation-aware adaptive
+            refinement, leading to more coherent object-level predictions and improved boundary quality.
+          </p>
+
+        </div>
+      </div>
+
+      <!-- LERF result -->
+      <div style="display: flex; justify-content: center; margin-bottom: 55px;">
+        <div style="max-width: 85%; text-align: left;">
+
+          <div style="
+            border: 1px solid #d9d9d9;
+            border-radius: 10px;
+            padding: 12px;
             background-color: #f7f7f7;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
           ">
@@ -201,18 +221,23 @@
               style="width: 100%; height: auto; display: block; border-radius: 6px;"
             />
           </div>
-          <p style="margin-top: 12px; font-size: 1rem; line-height: 1.5; text-align: justify;">
+
+          <p style="margin-top: 15px; font-size: 1.05rem; line-height: 1.55; text-align: justify;">
             Open-vocabulary segmentation results on LERF scenes. The refined instance-semantic
             representation improves category consistency and suppresses noisy semantic assignments.
           </p>
-        </div>
 
-        <!-- Grounding result 1 -->
-        <div style="text-align: left;">
+        </div>
+      </div>
+
+      <!-- Grounding result 1 -->
+      <div style="display: flex; justify-content: center; margin-bottom: 55px;">
+        <div style="max-width: 85%; text-align: left;">
+
           <div style="
             border: 1px solid #d9d9d9;
             border-radius: 10px;
-            padding: 10px;
+            padding: 12px;
             background-color: #f7f7f7;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
           ">
@@ -222,18 +247,23 @@
               style="width: 100%; height: auto; display: block; border-radius: 6px;"
             />
           </div>
-          <p style="margin-top: 12px; font-size: 1rem; line-height: 1.5; text-align: justify;">
+
+          <p style="margin-top: 15px; font-size: 1.05rem; line-height: 1.55; text-align: justify;">
             Query-guided 3D visual grounding results. The proposed reasoning strategy selects
             informative views and localizes the target object according to the query.
           </p>
-        </div>
 
-        <!-- Grounding result 2 -->
-        <div style="text-align: left;">
+        </div>
+      </div>
+
+      <!-- Grounding result 2 -->
+      <div style="display: flex; justify-content: center; margin-bottom: 40px;">
+        <div style="max-width: 85%; text-align: left;">
+
           <div style="
             border: 1px solid #d9d9d9;
             border-radius: 10px;
-            padding: 10px;
+            padding: 12px;
             background-color: #f7f7f7;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
           ">
@@ -243,12 +273,13 @@
               style="width: 100%; height: auto; display: block; border-radius: 6px;"
             />
           </div>
-          <p style="margin-top: 12px; font-size: 1rem; line-height: 1.5; text-align: justify;">
+
+          <p style="margin-top: 15px; font-size: 1.05rem; line-height: 1.55; text-align: justify;">
             Spatial-relation grounding examples. By combining refined 3D semantics with novel-view
             reasoning, ISGS-Reason can distinguish query-related targets from distractors.
           </p>
-        </div>
 
+        </div>
       </div>
 
     </div> <!-- end container -->
