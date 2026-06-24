@@ -135,6 +135,7 @@
   </div>
 </section>
 <!-- End paper abstract -->
+
 <!-- Image gallery section -->
 <section class="hero is-small">
   <div class="hero-body">
@@ -145,9 +146,13 @@
         Method Overview and Qualitative Results
       </h2>
 
-      <!-- Overview image -->
+      <!-- Method overview -->
       <div style="display: flex; justify-content: center; margin-bottom: 55px;">
         <div style="max-width: 85%; text-align: left;">
+
+          <h3 class="title is-4 has-text-centered" style="margin-bottom: 18px;">
+            Method Overview
+          </h3>
 
           <div style="
             border: 1px solid #d9d9d9;
@@ -163,7 +168,7 @@
             />
           </div>
 
-          <h2 class="subtitle" style="margin-top: 15px; line-height: 1.55; text-align: justify;">
+          <p style="margin-top: 15px; font-size: 1.05rem; line-height: 1.55; text-align: justify;">
             Given posed RGB-D images and an initial point cloud, the Instance--Semantic Initialization
             module assigns instance labels and aggregates multi-view semantic features to 3DGS primitives.
             Then, the Instance-Aware Reliability Modeling module evaluates reliability from entropy-based
@@ -172,14 +177,18 @@
             features. With the refined semantic representation, the Query-Guided Novel-View Reasoning
             module localizes candidate regions, samples spherical views, and performs visual reasoning.
             Ultimately, the model locates the query-related target through back-projection.
-          </h2>
+          </p>
 
         </div>
       </div>
 
-      <!-- Segmentation result -->
+      <!-- 3D semantic segmentation result -->
       <div style="display: flex; justify-content: center; margin-bottom: 55px;">
         <div style="max-width: 50%; text-align: left;">
+
+          <h3 class="title is-4 has-text-centered" style="margin-bottom: 18px;">
+            3D Semantic Segmentation Results
+          </h3>
 
           <div style="
             border: 1px solid #d9d9d9;
@@ -204,9 +213,44 @@
         </div>
       </div>
 
-      <!-- LERF result -->
+      <!-- Comparison with existing 3DGS-based segmentation methods -->
       <div style="display: flex; justify-content: center; margin-bottom: 55px;">
         <div style="max-width: 50%; text-align: left;">
+
+          <h3 class="title is-4 has-text-centered" style="margin-bottom: 18px;">
+            Comparison with Existing 3DGS-based Segmentation Methods
+          </h3>
+
+          <div style="
+            border: 1px solid #d9d9d9;
+            border-radius: 10px;
+            padding: 12px;
+            background-color: #f7f7f7;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          ">
+            <img
+              src="static/images/seg_02.jpg"
+              alt="Comparison with existing 3DGS-based semantic segmentation methods"
+              style="width: 100%; height: auto; display: block; border-radius: 6px;"
+            />
+          </div>
+
+          <p style="margin-top: 15px; font-size: 1.05rem; line-height: 1.55; text-align: justify;">
+            Comparison with existing 3DGS-based semantic segmentation methods. Compared with prior
+            approaches, ISGS-Reason produces cleaner semantic regions, fewer noisy predictions, and more
+            consistent object-level segmentation results.
+          </p>
+
+        </div>
+      </div>
+
+      <!-- Open-vocabulary segmentation on LERF -->
+      <div style="display: flex; justify-content: center; margin-bottom: 55px;">
+        <div style="max-width: 50%; text-align: left;">
+
+          <h3 class="title is-4 has-text-centered" style="margin-bottom: 18px;">
+            Open-vocabulary Segmentation on LERF
+          </h3>
 
           <div style="
             border: 1px solid #d9d9d9;
@@ -230,9 +274,75 @@
         </div>
       </div>
 
-      <!-- Grounding result 1 -->
+      <!-- Fine-grained object understanding -->
       <div style="display: flex; justify-content: center; margin-bottom: 55px;">
         <div style="max-width: 50%; text-align: left;">
+
+          <h3 class="title is-4 has-text-centered" style="margin-bottom: 18px;">
+            Fine-grained Object Understanding
+          </h3>
+
+          <div style="
+            border: 1px solid #d9d9d9;
+            border-radius: 10px;
+            padding: 12px;
+            background-color: #f7f7f7;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          ">
+            <img
+              src="static/images/bear_nose_01.jpg"
+              alt="Fine-grained object understanding results"
+              style="width: 100%; height: auto; display: block; border-radius: 6px;"
+            />
+          </div>
+
+          <p style="margin-top: 15px; font-size: 1.05rem; line-height: 1.55; text-align: justify;">
+            Fine-grained object understanding results. The model can distinguish between the whole
+            stuffed bear and a specific part such as the bear nose, showing its ability to handle
+            detailed semantic queries beyond coarse object categories.
+          </p>
+
+        </div>
+      </div>
+
+      <!-- Box-guided mask refinement -->
+      <div style="display: flex; justify-content: center; margin-bottom: 55px;">
+        <div style="max-width: 50%; text-align: left;">
+
+          <h3 class="title is-4 has-text-centered" style="margin-bottom: 18px;">
+            Box-guided Mask Refinement
+          </h3>
+
+          <div style="
+            border: 1px solid #d9d9d9;
+            border-radius: 10px;
+            padding: 12px;
+            background-color: #f7f7f7;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          ">
+            <img
+              src="static/images/box_refine_01.jpg"
+              alt="Box-guided mask refinement"
+              style="width: 100%; height: auto; display: block; border-radius: 6px;"
+            />
+          </div>
+
+          <p style="margin-top: 15px; font-size: 1.05rem; line-height: 1.55; text-align: justify;">
+            Box-guided mask refinement results. The bounding-box guidance helps alleviate over-segmentation
+            and produces more complete and target-consistent masks, which further benefits semantic
+            refinement and query-guided reasoning.
+          </p>
+
+        </div>
+      </div>
+
+      <!-- Query-guided 3D visual grounding -->
+      <div style="display: flex; justify-content: center; margin-bottom: 55px;">
+        <div style="max-width: 50%; text-align: left;">
+
+          <h3 class="title is-4 has-text-centered" style="margin-bottom: 18px;">
+            Query-guided 3D Visual Grounding
+          </h3>
 
           <div style="
             border: 1px solid #d9d9d9;
@@ -256,9 +366,13 @@
         </div>
       </div>
 
-      <!-- Grounding result 2 -->
+      <!-- Spatial-relation grounding -->
       <div style="display: flex; justify-content: center; margin-bottom: 40px;">
         <div style="max-width: 50%; text-align: left;">
+
+          <h3 class="title is-4 has-text-centered" style="margin-bottom: 18px;">
+            Spatial-relation Grounding
+          </h3>
 
           <div style="
             border: 1px solid #d9d9d9;
