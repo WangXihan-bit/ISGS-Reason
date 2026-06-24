@@ -23,7 +23,7 @@
   <meta name="keywords" content="KEYWORDS SHOULD BE PLACED HERE">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>ISGS-Reason: Instance-Semantic Embedded 3D Gaussian Splatting and Novel View Reasoning for Comprehensive Scene Understanding</title>
+  <title>ISGS-Reason: Instance-Semantic Embedded 3D Gaussian Splatting and Novel-View Reasoning for Comprehensive Scene Understanding</title>
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
   rel="stylesheet">
 
@@ -128,7 +128,7 @@
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
           <p>
-            Scene understanding integrates semantic and spatial representations within 3D environments. With the advent of 3D Gaussian Splatting (3DGS), a new paradigm for 3D scene representation has emerged, providing continuous novel-view rendering while maintaining fine-grained visual fidelity. Despite these advantages, existing 3DGS-based scene understanding pipelines still exhibit three critical limitations: inaccurate semantic features due to feature compression and alpha-blending based training; absence of spatial consistency constraints leading to imprecise 3D segmentation; and limited spatial reasoning capability for 3D querying. To address these challenges, we propose ISGS-Reason, a novel framework that integrates Instance–Semantic Embedded 3D Gaussian Splatting with Novel View Reasoning for comprehensive scene understanding. ISGS-Reason embeds instance and semantic features via direct feature lifting without compression or alpha-blending based training. Furthermore, an Instance-Consistency Feature Refinement (ICFR) module is introduced to enforce intra-instance smoothness and inter-instance distinctness. Moreover, ISGS-Reason achieves spatial reasoning through a query-guided spherical view sampling and chain-of-thought inference mechanism. Extensive experiments on multiple benchmarks demonstrate that ISGS-Reason outperforms state-of-the-art 3DGS-based scene understanding approaches, providing a unified solution for 3D segmentation and visual grounding.
+            Scene understanding requires the joint modeling of semantic representations and spatial structures. Recent advances in 3D Gaussian Splatting (3DGS) have enabled semantic features to be embedded into Gaussian primitives. However, existing methods still suffer from imbalanced instance-semantic integration and insufficient query-relevant visual evidence. To address these limitations, we propose ISGS-Reason, a unified framework that embeds instance-aware semantic features and performs query-guided novel-view reasoning for 3D segmentation and visual grounding. First, IARM estimates point-level feature reliability from entropy-based confidence and intra-instance consistency, while CAAR adaptively balances these two cues for semantic refinement. The refined semantic features provide reliable candidate regions for subsequent reasoning. Second, we propose a query-guided novel-view reasoning strategy to provide sufficient visual evidence for visual grounding. Extensive experiments demonstrate that ISGS-Reason consistently outperforms state-of-the-art methods on both 3D segmentation and visual grounding.
         </div>
       </div>
     </div>
@@ -147,7 +147,7 @@
         <div style="max-width: 80%; text-align: left;">
           <img src="static/images/overview_01.jpg" style="width: 100%; height: auto; margin-bottom: 10px;" />
           <h2 class="subtitle" style="margin: 0;">
-            Given a sequence of posed RGB-D images, we first extract 2D masks and two-level merged features. Subsequently, the 3D Gaussian Splatting algorithm is employed to represent the scene as parameterized Gaussian primitives. Then each primitive is endowed with instance identifiers and semantic features via direct feature lifting. To enhance point-level semantic features, we further propose the ICFR module considering entropy-based confidence and intra-instance consistency. Additionally, novel view reasoning strategy is introduced to endow the model with spatial reasoning capability. The input query guides potential regions through feature similarity, and Spherical View Sampling is devised to efficiently identify candidate regions for spatio-semantic relations. Finally, a Chain-of-Thought (CoT) reasoning mechanism is incorporated to infer the optimal viewpoint and distinguish the target object.
+            Given posed RGB-D images and an initial point cloud, the Instance--Semantic Initialization module assigns instance labels and aggregates multi-view semantic features to 3DGS primitives. Then, the Instance-Aware Reliability Modeling module evaluates reliability from entropy-based confidence and intra-instance consistency, while the Correlation-Aware Adaptive Refinement module further adaptively balances these complementary cues to refine semantic distributions and features. With the refined semantic representation, the Query-Guided Novel-View Reasoning module localizes candidate regions, samples spherical views, and performs visual reasoning. Ultimately, the model can locate the query-related target through back-projection
           </h2>
         </div>
       </div>
