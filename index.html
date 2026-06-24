@@ -139,39 +139,114 @@
 <!-- Image gallery section -->
 <section class="hero is-small">
   <div class="hero-body">
-    <div class="container has-text-centered">
-      
-      <!-- First image -->
-      <div style="display: flex; justify-content: center; margin-bottom: 50px;">
-        <!-- Inner container for width control -->
-        <div style="max-width: 80%; text-align: left;">
-          <img src="static/images/overview_01.jpg" style="width: 100%; height: auto; margin-bottom: 10px;" />
-          <h2 class="subtitle" style="margin: 0;">
-            Given posed RGB-D images and an initial point cloud, the Instance--Semantic Initialization module assigns instance labels and aggregates multi-view semantic features to 3DGS primitives. Then, the Instance-Aware Reliability Modeling module evaluates reliability from entropy-based confidence and intra-instance consistency, while the Correlation-Aware Adaptive Refinement module further adaptively balances these complementary cues to refine semantic distributions and features. With the refined semantic representation, the Query-Guided Novel-View Reasoning module localizes candidate regions, samples spherical views, and performs visual reasoning. Ultimately, the model can locate the query-related target through back-projection
+    <div class="container">
+
+      <!-- Section title -->
+      <h2 class="title is-3 has-text-centered" style="margin-bottom: 35px;">
+        Method Overview and Qualitative Results
+      </h2>
+
+      <!-- Overview image -->
+      <div style="display: flex; justify-content: center; margin-bottom: 55px;">
+        <div style="max-width: 85%; text-align: left;">
+
+          <div style="
+            border: 1px solid #d9d9d9;
+            border-radius: 10px;
+            padding: 12px;
+            background-color: #f7f7f7;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          ">
+            <img
+              src="static/images/overview_01.jpg"
+              alt="Overview of ISGS-Reason"
+              style="width: 100%; height: auto; display: block; border-radius: 6px;"
+            />
+          </div>
+
+          <h2 class="subtitle" style="margin-top: 15px; line-height: 1.55; text-align: justify;">
+            Given posed RGB-D images and an initial point cloud, the Instance--Semantic Initialization
+            module assigns instance labels and aggregates multi-view semantic features to 3DGS primitives.
+            Then, the Instance-Aware Reliability Modeling module evaluates reliability from entropy-based
+            confidence and intra-instance consistency, while the Correlation-Aware Adaptive Refinement
+            module adaptively balances these complementary cues to refine semantic distributions and
+            features. With the refined semantic representation, the Query-Guided Novel-View Reasoning
+            module localizes candidate regions, samples spherical views, and performs visual reasoning.
+            Ultimately, the model locates the query-related target through back-projection.
           </h2>
+
         </div>
       </div>
 
-      <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 50px;">
+      <!-- Qualitative results grid -->
+      <div style="
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 35px;
+        margin-bottom: 40px;
+      ">
 
-        <!-- Left image -->
-        <div style="width: 36%; text-align: center;">
-          <img src="./static/images/seg_01.jpg"
-               style="width: 100%; height: auto; margin-bottom: 10px;" />
-          <h2 class="subtitle" style="margin: 0; font-size: 0.9rem;">
-            Qualitative comparison of semantic segmentation with feed-forward
-            3DGS-based scene understanding methods on the ScanNet dataset.
-          </h2>
+        <!-- LERF result -->
+        <div style="text-align: left;">
+          <div style="
+            border: 1px solid #d9d9d9;
+            border-radius: 10px;
+            padding: 10px;
+            background-color: #f7f7f7;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          ">
+            <img
+              src="static/images/LERF_01.jpg"
+              alt="Open-vocabulary segmentation result on LERF"
+              style="width: 100%; height: auto; display: block; border-radius: 6px;"
+            />
+          </div>
+          <p style="margin-top: 12px; font-size: 1rem; line-height: 1.5; text-align: justify;">
+            Open-vocabulary segmentation results on LERF scenes. The refined instance-semantic
+            representation improves category consistency and suppresses noisy semantic assignments.
+          </p>
         </div>
-      
-        <!-- Right image -->
-        <div style="width: 40%; text-align: center;">
-          <img src="./static/images/grounding_01.jpg"
-               style="width: 100%; height: auto; margin-bottom: 10px;" />
-          <h2 class="subtitle" style="margin: 0; font-size: 0.9rem;">
-            Qualitative comparison of 3D visual grounding with representative
-            Graph-based and Image-based methods on the Nr3d dataset.
-          </h2>
+
+        <!-- Grounding result 1 -->
+        <div style="text-align: left;">
+          <div style="
+            border: 1px solid #d9d9d9;
+            border-radius: 10px;
+            padding: 10px;
+            background-color: #f7f7f7;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          ">
+            <img
+              src="static/images/grounding_01.jpg"
+              alt="Query-guided 3D visual grounding result"
+              style="width: 100%; height: auto; display: block; border-radius: 6px;"
+            />
+          </div>
+          <p style="margin-top: 12px; font-size: 1rem; line-height: 1.5; text-align: justify;">
+            Query-guided 3D visual grounding results. The proposed reasoning strategy selects
+            informative views and localizes the target object according to the query.
+          </p>
+        </div>
+
+        <!-- Grounding result 2 -->
+        <div style="text-align: left;">
+          <div style="
+            border: 1px solid #d9d9d9;
+            border-radius: 10px;
+            padding: 10px;
+            background-color: #f7f7f7;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          ">
+            <img
+              src="static/images/grounding_03.jpg"
+              alt="Spatial reasoning result for 3D visual grounding"
+              style="width: 100%; height: auto; display: block; border-radius: 6px;"
+            />
+          </div>
+          <p style="margin-top: 12px; font-size: 1rem; line-height: 1.5; text-align: justify;">
+            Spatial-relation grounding examples. By combining refined 3D semantics with novel-view
+            reasoning, ISGS-Reason can distinguish query-related targets from distractors.
+          </p>
         </div>
 
       </div>
